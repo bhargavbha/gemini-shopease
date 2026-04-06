@@ -185,14 +185,14 @@ const ShopPage = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                 {products.map((p: any) => (
                   <ProductCard
-                    key={p._id || p.id}
-                    id={p._id || p.id}
-                    name={p.name}
-                    price={p.price}
-                    image={p.images?.[0] || p.image}
+                    key={p.product_id || p._id || p.id}
+                    id={p.product_id || p._id || p.id}
+                    name={p.product_name || p.name}
+                    price={p.selling_price || p.price}
+                    image={p.p_images?.[0] || p.images?.[0] || p.image}
                     category={p.category?.name}
-                    onAddToCart={() => handleAddToCart(p._id || p.id)}
-                    onToggleWishlist={() => handleToggleWishlist(p._id || p.id)}
+                    onAddToCart={() => handleAddToCart(p.product_id || p._id || p.id)}
+                    onToggleWishlist={() => handleToggleWishlist(p.product_id || p._id || p.id)}
                   />
                 ))}
               </div>

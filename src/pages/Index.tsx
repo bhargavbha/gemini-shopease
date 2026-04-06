@@ -150,8 +150,8 @@ const ProductSlider = ({ title, queryKey, queryFn }: { title: string; queryKey: 
       {isLoading ? <SkeletonRow /> : (
         <div ref={scrollRef} className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 snap-x">
           {products.slice(0, 10).map((p: any) => (
-            <div key={p._id || p.id} className="min-w-[220px] max-w-[220px] snap-start">
-              <ProductCard id={p._id || p.id} name={p.name} price={p.price} image={p.images?.[0] || p.image} category={p.category?.name} />
+            <div key={p.product_id || p._id || p.id} className="min-w-[220px] max-w-[220px] snap-start">
+              <ProductCard id={p.product_id || p._id || p.id} name={p.product_name || p.name} price={p.selling_price || p.price} image={p.p_images?.[0] || p.images?.[0] || p.image} category={p.category?.name} />
             </div>
           ))}
         </div>

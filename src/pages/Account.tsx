@@ -240,14 +240,14 @@ const Account = () => {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     {wishlistItems.map((item: any) => {
                       const product = item.product || item;
-                      const pId = product._id || product.id;
+                      const pId = product.product_id || product._id || product.id;
                       return (
                         <div key={pId} className="relative">
                           <ProductCard
                             id={pId}
-                            name={product.name}
-                            price={product.price}
-                            image={product.images?.[0] || product.image}
+                            name={product.product_name || product.name}
+                            price={product.selling_price || product.price}
+                            image={product.p_images?.[0] || product.images?.[0] || product.image}
                             onAddToCart={() => handleMoveToCart(pId)}
                           />
                           <button onClick={() => handleRemoveWishlist(pId)}
