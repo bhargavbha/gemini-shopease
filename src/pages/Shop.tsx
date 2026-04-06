@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { productApi, categoryApi, cartApi, wishlistApi } from '@/services/api';
+import { productApi, categoryApi, cartApi, wishlistApi, bannerApi } from '@/services/api';
 import { useAuthStore } from '@/stores/auth-store';
 import ProductCard from '@/components/ProductCard';
 import { SkeletonRow } from '@/components/SkeletonLoader';
@@ -10,8 +10,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { useQueryClient } from '@tanstack/react-query';
+import { useVendorId } from '@/hooks/useVendor';
 
 const ShopPage = () => {
+  const vendorId = useVendorId();
   const { category_id } = useParams();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
@@ -20,9 +22,18 @@ const ShopPage = () => {
   const queryClient = useQueryClient();
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  const [debouncedPriceRange, setDebouncedPriceRange] = useState<[number, number]>([0, 100000]);
   const [showFilters, setShowFilters] = useState(false);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPriceRange(priceRange), 500);
+    return () => clearTimeout(timer);
+  }, [priceRange]);
+
+  const isFiltering = debouncedPriceRange[0] > 0 || debouncedPriceRange[1] < 100000;
+
   const getQueryKey = () => {
+    if (isFiltering) return ['products', 'filter', debouncedPriceRange, category_id, searchQuery];
     if (category_id) return ['products', 'category', category_id];
     if (searchQuery) return ['products', 'search', searchQuery];
     if (filterType === 'bestsellers') return ['products', 'bestsellers'];
@@ -31,15 +42,25 @@ const ShopPage = () => {
   };
 
   const getQueryFn = () => {
+    if (isFiltering) return () => productApi.filter({ minPrice: debouncedPriceRange[0], maxPrice: debouncedPriceRange[1], category: category_id, search: searchQuery }).then(r => r.data);
     if (category_id) return () => productApi.byCategory(category_id).then(r => r.data);
     if (searchQuery) return () => productApi.search(searchQuery).then(r => r.data);
     if (filterType === 'bestsellers') return () => productApi.bestsellers().then(r => r.data);
     if (filterType === 'new') return () => productApi.recent().then(r => r.data);
-    return () => productApi.getAll().then(r => r.data);
+    return () => productApi.byVendor(vendorId).then(r => r.data);
   };
 
   const { data, isLoading } = useQuery({ queryKey: getQueryKey(), queryFn: getQueryFn() });
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => categoryApi.getAll().then(r => r.data) });
+  
+  const { data: categoryBanner } = useQuery({
+    queryKey: ['banner', category_id],
+    queryFn: () => bannerApi.getByCategory(category_id!).then(r => r.data),
+    enabled: !!category_id,
+  });
+
+  const bannerImages = Array.isArray(categoryBanner) ? categoryBanner : categoryBanner?.banners || [];
+  const activeBanner = bannerImages[0];
 
   const products = Array.isArray(data) ? data : data?.products || [];
   const cats = Array.isArray(categories) ? categories : categories?.categories || [];
@@ -91,7 +112,7 @@ const ShopPage = () => {
                     className="flex-1 px-3 py-2 text-sm font-body bg-transparent outline-none"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && localSearch.trim()) {
-                        window.location.href = `/shop?search=${encodeURIComponent(localSearch.trim())}`;
+                        window.location.href = `/${vendorId}/shop?search=${encodeURIComponent(localSearch.trim())}`;
                       }
                     }}
                   />
@@ -106,10 +127,10 @@ const ShopPage = () => {
                   <ul className="space-y-2">
                     {cats.map((cat: any) => (
                       <li key={cat._id || cat.id}>
-                        <a href={`/category/${cat._id || cat.id}`}
+                        <Link to={`/${vendorId}/category/${cat._id || cat.id}`}
                           className={`text-sm font-body transition-colors ${category_id === (cat._id || cat.id) ? 'text-gold font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
                           {cat.name}
-                        </a>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -137,7 +158,16 @@ const ShopPage = () => {
           </aside>
 
           {/* Main */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
+            {activeBanner && (
+              <div className="mb-8 w-full h-48 lg:h-64 rounded-sm overflow-hidden relative bg-secondary">
+                {activeBanner.image && <img src={activeBanner.image} alt={activeBanner.title || ''} className="w-full h-full object-cover" />}
+                <div className="absolute inset-0 bg-foreground/20 flex flex-col items-center justify-center p-6 text-center">
+                  <h2 className="font-heading text-3xl font-bold text-background tracking-wide mb-2">{activeBanner.title}</h2>
+                  {activeBanner.subtitle && <p className="font-body text-background/90 max-w-lg">{activeBanner.subtitle}</p>}
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-6">
               <h1 className="font-heading text-2xl lg:text-3xl font-semibold">{getTitle()}</h1>
               <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center gap-2 text-sm font-body text-muted-foreground">

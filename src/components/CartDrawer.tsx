@@ -4,9 +4,11 @@ import { useAuthStore } from '@/stores/auth-store';
 import { cartApi } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useVendorId } from '@/hooks/useVendor';
 import EmptyState from '@/components/EmptyState';
 
 const CartDrawer = () => {
+  const vendorId = useVendorId();
   const { isOpen, closeCart, items, totalPrice } = useCartStore();
   const { isAuthenticated, user } = useAuthStore();
   const navigate = useNavigate();
@@ -23,9 +25,9 @@ const CartDrawer = () => {
   const handleCheckout = () => {
     closeCart();
     if (!isAuthenticated) {
-      navigate('/login?redirect=/checkout');
+      navigate(`/${vendorId}/login?redirect=${encodeURIComponent('/' + vendorId + '/checkout')}`);
     } else {
-      navigate('/checkout');
+      navigate(`/${vendorId}/checkout`);
     }
   };
 

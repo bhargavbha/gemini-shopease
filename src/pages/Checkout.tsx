@@ -9,8 +9,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { toast } from 'sonner';
+import { useVendorId } from '@/hooks/useVendor';
 
 const Checkout = () => {
+  const vendorId = useVendorId();
   const { user, isAuthenticated } = useAuthStore();
   const { items, totalPrice, cartId } = useCartStore();
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ const Checkout = () => {
   const [addr, setAddr] = useState({ street: '', city: '', state: '', zip: '', country: '' });
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/login?redirect=/checkout');
+    if (!isAuthenticated) navigate(`/${vendorId}/login?redirect=/${vendorId}/checkout`);
   }, [isAuthenticated, navigate]);
 
   const { data: addresses } = useQuery({

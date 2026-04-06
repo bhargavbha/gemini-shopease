@@ -3,15 +3,17 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { useVendorId } from '@/hooks/useVendor';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const { login, isLoading } = useAuthStore();
+  const vendorId = useVendorId();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = searchParams.get('redirect') || `/${vendorId}/`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +42,7 @@ const Login = () => {
       </div>
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          <Link to="/" className="font-heading text-2xl font-semibold tracking-wide text-foreground mb-8 block">
+          <Link to={`/${vendorId}/`} className="font-heading text-2xl font-semibold tracking-wide text-foreground mb-8 block">
             GOLDEN ERA<span className="text-gold">.</span>
           </Link>
           <h1 className="font-heading text-2xl font-semibold mb-2">Sign In</h1>
@@ -71,7 +73,7 @@ const Login = () => {
           </form>
 
           <p className="font-body text-sm text-muted-foreground text-center mt-6">
-            Don't have an account? <Link to="/register" className="text-gold hover:underline">Create one</Link>
+            Don't have an account? <Link to={`/${vendorId}/register`} className="text-gold hover:underline">Create one</Link>
           </p>
         </div>
       </div>

@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useVendorId } from '@/hooks/useVendor';
 
-const Footer = () => (
+const Footer = () => {
+  const vendorId = useVendorId();
+  return (
   <footer className="bg-primary text-primary-foreground mt-20">
     <div className="container mx-auto px-4 py-16">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -13,17 +16,17 @@ const Footer = () => (
         <div>
           <h4 className="font-heading text-sm font-semibold uppercase tracking-wider mb-4">Shop</h4>
           <ul className="space-y-2.5">
-            <li><Link to="/shop" className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">All Products</Link></li>
-            <li><Link to="/shop?filter=new" className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">New Arrivals</Link></li>
-            <li><Link to="/shop?filter=bestsellers" className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">Bestsellers</Link></li>
+            <li><Link to={`/${vendorId}/shop`} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">All Products</Link></li>
+            <li><Link to={`/${vendorId}/shop?filter=new`} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">New Arrivals</Link></li>
+            <li><Link to={`/${vendorId}/shop?filter=bestsellers`} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">Bestsellers</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="font-heading text-sm font-semibold uppercase tracking-wider mb-4">Account</h4>
           <ul className="space-y-2.5">
-            <li><Link to="/account" className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">My Profile</Link></li>
-            <li><Link to="/account?tab=orders" className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">Order History</Link></li>
-            <li><Link to="/account?tab=wishlist" className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">Wishlist</Link></li>
+            <li><Link to={`/${vendorId}/account`} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">My Profile</Link></li>
+            <li><Link to={`/${vendorId}/account?tab=orders`} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">Order History</Link></li>
+            <li><Link to={`/${vendorId}/account?tab=wishlist`} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors font-body">Wishlist</Link></li>
           </ul>
         </div>
         <div>
@@ -39,6 +42,7 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

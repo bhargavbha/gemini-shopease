@@ -1,6 +1,7 @@
 import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useVendorId } from '@/hooks/useVendor';
 
 interface ProductCardProps {
   id: string;
@@ -14,6 +15,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ id, name, price, image, category, onAddToCart, onToggleWishlist, isWishlisted }: ProductCardProps) => {
+  const vendorId = useVendorId();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -21,7 +23,7 @@ const ProductCard = ({ id, name, price, image, category, onAddToCart, onToggleWi
       transition={{ duration: 0.4 }}
       className="group relative"
     >
-      <Link to={`/product/${id}`} className="block">
+      <Link to={`/${vendorId}/product/${id}`} className="block">
         <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-secondary">
           {image ? (
             <img

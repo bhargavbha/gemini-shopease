@@ -12,6 +12,15 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Extract vendorId from the URL path as we wrapped routes in /:vendor_id
+  const pathParts = window.location.pathname.split('/');
+  if (pathParts.length > 1 && pathParts[1] !== "") {
+    const vendorId = pathParts[1];
+    config.headers['x-vendor-id'] = vendorId;
+    config.params = { ...config.params, vendor_id: vendorId };
+  }
+
   return config;
 });
 

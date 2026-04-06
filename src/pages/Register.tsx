@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
+import { useVendorId } from '@/hooks/useVendor';
 
 const Register = () => {
+  const vendorId = useVendorId();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +25,7 @@ const Register = () => {
     try {
       await register({ name, email, password });
       toast.success('Account created! Please sign in.');
-      navigate('/login');
+      navigate(`/${vendorId}/login`);
     } catch {
       toast.error('Registration failed. Please try again.');
     }
@@ -41,7 +43,7 @@ const Register = () => {
       </div>
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          <Link to="/" className="font-heading text-2xl font-semibold tracking-wide text-foreground mb-8 block">
+          <Link to={`/${vendorId}/`} className="font-heading text-2xl font-semibold tracking-wide text-foreground mb-8 block">
             GOLDEN ERA<span className="text-gold">.</span>
           </Link>
           <h1 className="font-heading text-2xl font-semibold mb-2">Create Account</h1>
@@ -73,7 +75,7 @@ const Register = () => {
           </form>
 
           <p className="font-body text-sm text-muted-foreground text-center mt-6">
-            Already have an account? <Link to="/login" className="text-gold hover:underline">Sign in</Link>
+            Already have an account? <Link to={`/${vendorId}/login`} className="text-gold hover:underline">Sign in</Link>
           </p>
         </div>
       </div>

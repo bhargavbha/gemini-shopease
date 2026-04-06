@@ -20,6 +20,9 @@ const ProductDetail = () => {
   const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', product_id],
@@ -39,8 +42,15 @@ const ProductDetail = () => {
     enabled: !!product_id,
   });
 
+  const { data: vendorRelated, isLoading: vendorRelatedLoading } = useQuery({
+    queryKey: ['vendor-related', product_id],
+    queryFn: () => productApi.sameVendor(product_id!).then(r => r.data),
+    enabled: !!product_id,
+  });
+
   const reviewsList = Array.isArray(reviews) ? reviews : reviews?.reviews || [];
   const relatedProducts = Array.isArray(related) ? related : related?.products || [];
+  const vendorProducts = Array.isArray(vendorRelated) ? vendorRelated : vendorRelated?.products || [];
   const images = product?.images || (product?.image ? [product.image] : []);
 
   const handleAddToCart = async () => {
@@ -69,6 +79,27 @@ const ProductDetail = () => {
       toast.success('Added to wishlist');
     } catch {
       toast.error('Failed to add to wishlist');
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated || !user?.id) {
+      toast.error('Please login to leave a review');
+      return;
+    }
+    if (!reviewText.trim()) return;
+    setIsSubmittingReview(true);
+    try {
+      await reviewApi.addReview({ product_id: product_id, user_id: user.id, rating: reviewRating, comment: reviewText });
+      toast.success('Review submitted successfully');
+      setReviewText('');
+      setReviewRating(5);
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    } catch {
+      toast.error('Failed to submit review');
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -188,9 +219,38 @@ const ProductDetail = () => {
         </div>
 
         {/* Reviews */}
-        {reviewsList.length > 0 && (
-          <section className="mt-16 lg:mt-24">
-            <h2 className="font-heading text-2xl font-semibold mb-8">Customer Reviews</h2>
+        <section className="mt-16 lg:mt-24">
+          <h2 className="font-heading text-2xl font-semibold mb-8">Customer Reviews</h2>
+          
+          {isAuthenticated && (
+            <div className="mb-10 bg-secondary/30 p-6 rounded-sm border border-border">
+              <h3 className="font-heading text-lg font-semibold mb-4">Leave a Review</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-body text-muted-foreground mb-2">Rating</label>
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(s => (
+                      <button type="button" key={s} onClick={() => setReviewRating(s)} className="p-1">
+                        <Star size={20} className={s <= reviewRating ? 'fill-gold text-gold' : 'text-border'} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-body text-muted-foreground mb-2">Your Review</label>
+                  <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} rows={3}
+                    className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors"
+                    placeholder="Tell us what you think..." required />
+                </div>
+                <button type="submit" disabled={isSubmittingReview}
+                  className="px-6 py-2.5 bg-primary text-primary-foreground text-sm font-body font-medium uppercase tracking-widest disabled:opacity-50">
+                  {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {reviewsList.length > 0 ? (
             <div className="space-y-6">
               {reviewsList.map((r: any, i: number) => (
                 <div key={i} className="border-b border-border pb-6">
@@ -206,8 +266,10 @@ const ProductDetail = () => {
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="text-sm font-body text-muted-foreground">No reviews yet. Be the first to review!</p>
+          )}
+        </section>
 
         {/* Related */}
         <section className="mt-16 lg:mt-24">
@@ -220,6 +282,20 @@ const ProductDetail = () => {
             </div>
           )}
         </section>
+
+        {/* Same Vendor */}
+        {vendorProducts.length > 0 && (
+          <section className="mt-12 lg:mt-20">
+            <h2 className="font-heading text-2xl font-semibold mb-8">More from this Vendor</h2>
+            {vendorRelatedLoading ? <SkeletonRow /> : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {vendorProducts.slice(0, 4).map((p: any) => (
+                  <ProductCard key={p._id || p.id} id={p._id || p.id} name={p.name} price={p.price} image={p.images?.[0] || p.image} category={p.category?.name} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </main>
       <Footer />
     </>

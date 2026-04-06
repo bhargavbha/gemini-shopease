@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { User, Package, Heart, LogOut, ChevronRight, Star } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
-import { orderApi, wishlistApi, cartApi, authApi } from '@/services/api';
+import { orderApi, wishlistApi, cartApi, authApi, invoiceApi } from '@/services/api';
 import ProductCard from '@/components/ProductCard';
 import EmptyState from '@/components/EmptyState';
 import { SkeletonRow } from '@/components/SkeletonLoader';
@@ -11,8 +11,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { toast } from 'sonner';
+import { useVendorId } from '@/hooks/useVendor';
 
 const Account = () => {
+  const vendorId = useVendorId();
   const { user, isAuthenticated, logout, fetchProfile } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -23,7 +25,7 @@ const Account = () => {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/login?redirect=/account');
+    if (!isAuthenticated) navigate(`/${vendorId}/login?redirect=/${vendorId}/account`);
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
@@ -108,7 +110,7 @@ const Account = () => {
                   {t.label}
                 </button>
               ))}
-              <button onClick={() => { logout(); navigate('/'); }}
+              <button onClick={() => { logout(); navigate(`/${vendorId}/`); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-body text-destructive hover:bg-destructive/10 transition-colors mt-4">
                 <LogOut size={16} /> Sign Out
               </button>
@@ -165,9 +167,29 @@ const Account = () => {
                             {new Date(orderDetail.order?.createdAt || orderDetail.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                           </p>
                         </div>
-                        <span className="px-3 py-1 bg-secondary text-xs font-body font-medium rounded-full uppercase">
-                          {orderDetail.order?.status || orderDetail.status || 'Processing'}
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="px-3 py-1 bg-secondary text-xs font-body font-medium rounded-full uppercase">
+                            {orderDetail.order?.status || orderDetail.status || 'Processing'}
+                          </span>
+                          <button onClick={async () => {
+                            try {
+                              const res = await invoiceApi.getInvoice(orderDetail.order?._id || orderDetail._id || selectedOrder!);
+                              const blob = new Blob([res.data], { type: 'application/pdf' });
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `Invoice-${(orderDetail.order?._id || orderDetail._id || selectedOrder!).slice(-8)}.pdf`;
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              window.URL.revokeObjectURL(url);
+                            } catch {
+                              toast.error('Failed to download invoice');
+                            }
+                          }} className="text-xs font-body text-gold hover:underline">
+                            Download Invoice
+                          </button>
+                        </div>
                       </div>
                       <hr className="border-border" />
                       <div className="space-y-3">

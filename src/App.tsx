@@ -30,14 +30,17 @@ const App = () => (
       <BrowserRouter>
         <AuthInit>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/category/:category_id" element={<Shop />} />
-            <Route path="/product/:product_id" element={<ProductDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/" element={<NotFound />} />
+            <Route path="/:vendor_id">
+              <Route index element={<Index />} />
+              <Route path="shop" element={<Shop />} />
+              <Route path="category/:category_id" element={<Shop />} />
+              <Route path="product/:product_id" element={<ProductDetail />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+              <Route path="account" element={<Account />} />
+              <Route path="checkout" element={<Checkout />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthInit>

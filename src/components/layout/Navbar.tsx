@@ -3,11 +3,13 @@ import { Heart, Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useCartStore } from '@/stores/cart-store';
 import { useState } from 'react';
+import { useVendorId } from '@/hooks/useVendor';
 
 const Navbar = () => {
   const { isAuthenticated } = useAuthStore();
   const { openCart, totalItems } = useCartStore();
   const navigate = useNavigate();
+  const vendorId = useVendorId();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +18,7 @@ const Navbar = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/${vendorId}/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
       setSearchQuery('');
     }
@@ -25,9 +27,9 @@ const Navbar = () => {
   const handleProtectedNav = (path: string) => {
     setMobileOpen(false);
     if (!isAuthenticated) {
-      navigate(`/login?redirect=${encodeURIComponent(path)}`);
+      navigate(`/${vendorId}/login?redirect=${encodeURIComponent('/' + vendorId + path)}`);
     } else {
-      navigate(path);
+      navigate(`/${vendorId}${path}`);
     }
   };
 
@@ -46,19 +48,19 @@ const Navbar = () => {
             </button>
 
             {/* Logo */}
-            <Link to="/" className="font-heading text-xl lg:text-2xl font-semibold tracking-wide text-foreground">
+            <Link to={`/${vendorId}`} className="font-heading text-xl lg:text-2xl font-semibold tracking-wide text-foreground">
               GOLDEN ERA<span className="text-gold">.</span>
             </Link>
 
             {/* Desktop nav */}
             <nav className="hidden lg:flex items-center gap-8">
-              <Link to="/shop" className="text-sm font-body font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors">
+              <Link to={`/${vendorId}/shop`} className="text-sm font-body font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors">
                 Shop
               </Link>
-              <Link to="/shop?filter=new" className="text-sm font-body font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors">
+              <Link to={`/${vendorId}/shop?filter=new`} className="text-sm font-body font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors">
                 New Arrivals
               </Link>
-              <Link to="/shop?filter=bestsellers" className="text-sm font-body font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors">
+              <Link to={`/${vendorId}/shop?filter=bestsellers`} className="text-sm font-body font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors">
                 Bestsellers
               </Link>
             </nav>
@@ -71,7 +73,7 @@ const Navbar = () => {
               <button onClick={() => handleProtectedNav('/account?tab=wishlist')} className="hidden sm:block p-2 text-muted-foreground hover:text-foreground transition-colors" aria-label="Wishlist">
                 <Heart size={20} />
               </button>
-              <button onClick={() => isAuthenticated ? navigate('/account') : navigate('/login')} className="p-2 text-muted-foreground hover:text-foreground transition-colors" aria-label="Account">
+              <button onClick={() => isAuthenticated ? navigate(`/${vendorId}/account`) : navigate(`/${vendorId}/login`)} className="p-2 text-muted-foreground hover:text-foreground transition-colors" aria-label="Account">
                 <User size={20} />
               </button>
               <button onClick={openCart} className="relative p-2 text-muted-foreground hover:text-foreground transition-colors" aria-label="Cart">
@@ -111,9 +113,9 @@ const Navbar = () => {
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <nav className="absolute left-0 top-0 bottom-0 w-72 bg-background p-6 pt-20 flex flex-col gap-6 animate-slide-in-right">
-            <Link to="/shop" onClick={() => setMobileOpen(false)} className="text-lg font-heading font-medium">Shop All</Link>
-            <Link to="/shop?filter=new" onClick={() => setMobileOpen(false)} className="text-lg font-heading font-medium">New Arrivals</Link>
-            <Link to="/shop?filter=bestsellers" onClick={() => setMobileOpen(false)} className="text-lg font-heading font-medium">Bestsellers</Link>
+            <Link to={`/${vendorId}/shop`} onClick={() => setMobileOpen(false)} className="text-lg font-heading font-medium">Shop All</Link>
+            <Link to={`/${vendorId}/shop?filter=new`} onClick={() => setMobileOpen(false)} className="text-lg font-heading font-medium">New Arrivals</Link>
+            <Link to={`/${vendorId}/shop?filter=bestsellers`} onClick={() => setMobileOpen(false)} className="text-lg font-heading font-medium">Bestsellers</Link>
             <hr className="border-border" />
             <button onClick={() => handleProtectedNav('/account')} className="text-left text-lg font-heading font-medium">My Account</button>
             <button onClick={() => handleProtectedNav('/account?tab=wishlist')} className="text-left text-lg font-heading font-medium">Wishlist</button>
