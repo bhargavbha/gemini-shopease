@@ -39,14 +39,14 @@ const ProductCard = ({ id, name, price, image, category, onAddToCart, onToggleWi
           )}
           {/* Quick actions overlay */}
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-300" />
-          {onAddToCart && (
-            <button
-              onClick={(e) => { e.preventDefault(); onAddToCart(); }}
-              className="absolute bottom-3 left-3 right-3 py-2.5 bg-primary text-primary-foreground text-xs font-body font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-center"
-            >
-              Add to Cart
-            </button>
-          )}
+            {onAddToCart && (
+              <button
+                onClick={(e) => { e.preventDefault(); onAddToCart(); }}
+                className="absolute bottom-3 left-3 right-3 py-2.5 bg-primary text-primary-foreground text-xs font-body font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-center"
+              >
+                Buy Now
+              </button>
+            )}
         </div>
       </Link>
 

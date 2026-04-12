@@ -15,20 +15,17 @@ const CartDrawer = () => {
   const queryClient = useQueryClient();
 
   const handleRemove = async (productId: string) => {
-    if (!user?.id) return;
+    const userId = user?.id || useAuthStore.getState().guestId;
+    if (!userId) return;
     try {
-      await cartApi.remove({ user_id: user.id, product_id: productId });
+      await cartApi.remove({ user_id: userId, product_id: productId });
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     } catch { /* handled by interceptor */ }
   };
 
   const handleCheckout = () => {
     closeCart();
-    if (!isAuthenticated) {
-      navigate(`/${vendorId}/login?redirect=${encodeURIComponent('/' + vendorId + '/checkout')}`);
-    } else {
-      navigate(`/${vendorId}/checkout`);
-    }
+    navigate(`/${vendorId}/checkout`);
   };
 
   if (!isOpen) return null;

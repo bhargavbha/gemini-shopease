@@ -12,6 +12,7 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  guestId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -21,14 +22,26 @@ interface AuthState {
   initialize: () => void;
 }
 
+const getOrCreateGuestId = () => {
+  let id = localStorage.getItem('guest_id');
+  if (!id) {
+    id = 'guest_' + Math.random().toString(36).substring(2, 11);
+    localStorage.setItem('guest_id', id);
+  }
+  return id;
+};
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: localStorage.getItem('jwt_token'),
+  guestId: getOrCreateGuestId(),
   isAuthenticated: !!localStorage.getItem('jwt_token'),
   isLoading: false,
 
   initialize: () => {
     const token = localStorage.getItem('jwt_token');
+    const guestId = getOrCreateGuestId();
+    set({ guestId });
     if (token) {
       set({ token, isAuthenticated: true });
       get().fetchProfile();
@@ -63,7 +76,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('user_id');
-    set({ user: null, token: null, isAuthenticated: false });
+    const guestId = getOrCreateGuestId();
+    set({ user: null, token: null, isAuthenticated: false, guestId });
   },
 
   fetchProfile: async () => {

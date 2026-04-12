@@ -105,12 +105,12 @@ const CategoryGrid = () => {
       <h2 className="font-heading text-2xl lg:text-3xl font-semibold text-center mb-10">Shop by Category</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {categories.slice(0, 8).map((cat: any) => (
-          <Link key={cat._id || cat.id} to={`/${vendorId}/category/${cat._id || cat.id}`}
+          <Link key={cat.category_id} to={`/${vendorId}/category/${cat.category_id}`}
             className="group relative aspect-square overflow-hidden rounded-sm bg-secondary">
-            {cat.image && <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+            {cat.category_image && <img src={cat.category_image} alt={cat.category_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
             <div className="absolute inset-0 bg-foreground/30 group-hover:bg-foreground/40 transition-colors" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-heading text-lg font-semibold text-background tracking-wide">{cat.name}</span>
+              <span className="font-heading text-lg font-semibold text-background tracking-wide">{cat.category_name}</span>
             </div>
           </Link>
         ))}

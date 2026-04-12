@@ -13,11 +13,11 @@ import { useVendorId } from '@/hooks/useVendor';
 
 const Checkout = () => {
   const vendorId = useVendorId();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, guestId } = useAuthStore();
   const { items, totalPrice, cartId } = useCartStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const userId = user?.id || localStorage.getItem('user_id') || '';
+  const userId = user?.id || localStorage.getItem('user_id') || guestId || '';
 
   const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
   const [selectedBilling, setSelectedBilling] = useState<string | null>(null);
@@ -31,7 +31,7 @@ const Checkout = () => {
   const [addr, setAddr] = useState({ street: '', city: '', state: '', zip: '', country: '' });
 
   useEffect(() => {
-    if (!isAuthenticated) navigate(`/${vendorId}/login?redirect=/${vendorId}/checkout`);
+    // Guest checkout is now allowed, so we don't redirect to login anymore
   }, [isAuthenticated, navigate]);
 
   const { data: addresses } = useQuery({

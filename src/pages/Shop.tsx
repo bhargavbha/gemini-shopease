@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { productApi, categoryApi, cartApi, wishlistApi, bannerApi } from '@/services/api';
@@ -11,11 +11,13 @@ import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { useQueryClient } from '@tanstack/react-query';
 import { useVendorId } from '@/hooks/useVendor';
+import { toast } from 'sonner';
 
 const ShopPage = () => {
   const vendorId = useVendorId();
   const { category_id } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const searchQuery = searchParams.get('search') || '';
   const filterType = searchParams.get('filter') || '';
   const { user, isAuthenticated } = useAuthStore();
@@ -70,18 +72,25 @@ const ShopPage = () => {
     if (filterType === 'bestsellers') return 'Bestsellers';
     if (filterType === 'new') return 'New Arrivals';
     if (category_id) {
-      const cat = cats.find((c: any) => (c._id || c.id) === category_id);
-      return cat?.name || 'Category';
+      const cat = cats.find((c: any) => String(c.category_id) === category_id);
+      return cat?.category_name || 'Category';
     }
-    return 'All Products';
+    return 'Shop all new arrivals';
   };
 
-  const handleAddToCart = async (productId: string) => {
-    if (!isAuthenticated || !user?.id) return;
+  const handleBuyNow = async (productId: string) => {
+    const userId = user?.id || useAuthStore.getState().guestId;
+    if (!userId) {
+      toast.error('Please login to continue');
+      return;
+    }
     try {
-      await cartApi.add({ user_id: user.id, product_id: productId, quantity: 1 });
+      await cartApi.add({ user_id: userId, product_id: productId, quantity: 1 });
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-    } catch {}
+      navigate(`/${vendorId}/checkout`);
+    } catch {
+      toast.error('Failed to process request');
+    }
   };
 
   const handleToggleWishlist = async (productId: string) => {
@@ -126,10 +135,10 @@ const ShopPage = () => {
                   <h3 className="font-heading text-sm font-semibold uppercase tracking-wider mb-3">Categories</h3>
                   <ul className="space-y-2">
                     {cats.map((cat: any) => (
-                      <li key={cat._id || cat.id}>
-                        <Link to={`/${vendorId}/category/${cat._id || cat.id}`}
-                          className={`text-sm font-body transition-colors ${category_id === (cat._id || cat.id) ? 'text-gold font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
-                          {cat.name}
+                      <li key={cat.category_id}>
+                        <Link to={`/${vendorId}/category/${cat.category_id}`}
+                          className={`text-sm font-body transition-colors ${category_id === String(cat.category_id) ? 'text-gold font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
+                          {cat.category_name}
                         </Link>
                       </li>
                     ))}
@@ -191,7 +200,7 @@ const ShopPage = () => {
                     price={p.selling_price || p.price}
                     image={p.p_images?.[0] || p.images?.[0] || p.image}
                     category={p.category?.name}
-                    onAddToCart={() => handleAddToCart(p.product_id || p._id || p.id)}
+                    onAddToCart={() => handleBuyNow(p.product_id || p._id || p.id)}
                     onToggleWishlist={() => handleToggleWishlist(p.product_id || p._id || p.id)}
                   />
                 ))}

@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useVendorId } from '@/hooks/useVendor';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingBag, Star, Minus, Plus } from 'lucide-react';
@@ -16,7 +17,8 @@ import { toast } from 'sonner';
 const ProductDetail = () => {
   const { product_id } = useParams<{ product_id: string }>();
   const { user, isAuthenticated } = useAuthStore();
-  const { openCart } = useCartStore();
+  const navigate = useNavigate();
+  const vendorId = useVendorId();
   const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -53,18 +55,19 @@ const ProductDetail = () => {
   const vendorProducts = Array.isArray(vendorRelated) ? vendorRelated : vendorRelated?.products || [];
   const images = product?.images || (product?.image ? [product.image] : []);
 
-  const handleAddToCart = async () => {
-    if (!isAuthenticated || !user?.id) {
-      toast.error('Please login to add items to cart');
+  const handleBuyNow = async () => {
+    const userId = user?.id || useAuthStore.getState().guestId;
+    if (!userId) {
+      toast.error('Please login to continue');
       return;
     }
     try {
-      await cartApi.add({ user_id: user.id, product_id: product_id!, quantity });
+      await cartApi.add({ user_id: userId, product_id: product_id!, quantity });
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      openCart();
-      toast.success('Added to cart');
+      navigate(`/${vendorId}/checkout`);
+      toast.success('Redirecting to checkout...');
     } catch {
-      toast.error('Failed to add to cart');
+      toast.error('Failed to process request');
     }
   };
 
@@ -147,7 +150,7 @@ const ProductDetail = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             <div className="aspect-square bg-secondary rounded-sm overflow-hidden">
               {images[selectedImage] ? (
-                <img src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+                <img src={images[selectedImage]} alt={product.data?.product_name || product.product_name || product.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground font-heading">No Image</div>
               )}
@@ -166,15 +169,15 @@ const ProductDetail = () => {
 
           {/* Details */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-6">
-            {product.category?.name && (
-              <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">{product.category.name}</p>
+            {product.category?.category_name && (
+              <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">{product.category.category_name}</p>
             )}
-            <h1 className="font-heading text-3xl lg:text-4xl font-semibold leading-tight">{product.name}</h1>
+            <h1 className="font-heading text-3xl lg:text-4xl font-semibold leading-tight">{product.data.product_name}</h1>
 
             {reviewsList.length > 0 && (
               <div className="flex items-center gap-2">
                 <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map(s => (
+                  {[1, 2, 3, 4, 5].map(s => (
                     <Star key={s} size={14} className={s <= Math.round(avgRating) ? 'fill-gold text-gold' : 'text-border'} />
                   ))}
                 </div>
@@ -182,16 +185,16 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <p className="font-heading text-2xl font-semibold">${product.price?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            <p className="font-heading text-2xl font-semibold">₹ {product.data.selling_price?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
 
-            {product.description && (
-              <p className="font-body text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+            {product.data.main_description && (
+              <p className="font-body text-sm text-muted-foreground leading-relaxed">{product.data.main_description}</p>
             )}
 
             <p className="text-sm font-body">
               <span className="text-muted-foreground">Availability: </span>
-              <span className={product.stock > 0 ? 'text-green-600' : 'text-destructive'}>
-                {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+              <span className={(product.original_stock || product.stock) > 0 ? 'text-green-600' : 'text-destructive'}>
+                {(product.original_stock || product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
               </span>
             </p>
 
@@ -205,10 +208,10 @@ const ProductDetail = () => {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button onClick={handleAddToCart}
+              <button onClick={handleBuyNow}
                 className="flex-1 py-3.5 bg-primary text-primary-foreground font-body text-sm font-medium uppercase tracking-widest hover:bg-charcoal-light transition-colors flex items-center justify-center gap-2"
                 disabled={product.stock <= 0}>
-                <ShoppingBag size={16} /> Add to Cart
+                <ShoppingBag size={16} /> Buy Now
               </button>
               <button onClick={handleAddToWishlist}
                 className="px-4 py-3.5 border border-border text-foreground hover:border-gold hover:text-gold transition-colors">
@@ -221,7 +224,7 @@ const ProductDetail = () => {
         {/* Reviews */}
         <section className="mt-16 lg:mt-24">
           <h2 className="font-heading text-2xl font-semibold mb-8">Customer Reviews</h2>
-          
+
           {isAuthenticated && (
             <div className="mb-10 bg-secondary/30 p-6 rounded-sm border border-border">
               <h3 className="font-heading text-lg font-semibold mb-4">Leave a Review</h3>
@@ -229,7 +232,7 @@ const ProductDetail = () => {
                 <div>
                   <label className="block text-sm font-body text-muted-foreground mb-2">Rating</label>
                   <div className="flex gap-1">
-                    {[1,2,3,4,5].map(s => (
+                    {[1, 2, 3, 4, 5].map(s => (
                       <button type="button" key={s} onClick={() => setReviewRating(s)} className="p-1">
                         <Star size={20} className={s <= reviewRating ? 'fill-gold text-gold' : 'text-border'} />
                       </button>
@@ -256,7 +259,7 @@ const ProductDetail = () => {
                 <div key={i} className="border-b border-border pb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(s => (
+                      {[1, 2, 3, 4, 5].map(s => (
                         <Star key={s} size={12} className={s <= (r.rating || 0) ? 'fill-gold text-gold' : 'text-border'} />
                       ))}
                     </div>
@@ -277,7 +280,7 @@ const ProductDetail = () => {
           {relatedLoading ? <SkeletonRow /> : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.slice(0, 4).map((p: any) => (
-                <ProductCard key={p._id || p.id} id={p._id || p.id} name={p.name} price={p.price} image={p.images?.[0] || p.image} category={p.category?.name} />
+                <ProductCard key={p._id || p.id} id={p._id || p.id} name={p.data?.product_name || p.product_name || p.name} price={p.selling_price || p.price} image={p.images?.[0] || p.image} category={p.category?.category_name || p.category?.name} />
               ))}
             </div>
           )}
@@ -290,7 +293,7 @@ const ProductDetail = () => {
             {vendorRelatedLoading ? <SkeletonRow /> : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {vendorProducts.slice(0, 4).map((p: any) => (
-                  <ProductCard key={p._id || p.id} id={p._id || p.id} name={p.name} price={p.price} image={p.images?.[0] || p.image} category={p.category?.name} />
+                  <ProductCard key={p._id || p.id} id={p._id || p.id} name={p.data?.product_name || p.product_name || p.name} price={p.selling_price || p.price} image={p.images?.[0] || p.image} category={p.category?.category_name || p.category?.name} />
                 ))}
               </div>
             )}
