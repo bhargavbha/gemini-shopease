@@ -6,24 +6,33 @@ import { useVendorId } from '@/hooks/useVendor';
 
 const Register = () => {
   const vendorId = useVendorId();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [phoneNo, setPhoneNo] = useState('');
   const { register, isLoading } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phoneNo.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNo)) {
+      toast.error('Phone number must be exactly 10 digits');
       return;
     }
+
     try {
-      await register({ name, email, password });
+      await register({ 
+        first_name: firstName, 
+        last_name: lastName, 
+        email, 
+        phone_no: phoneNo 
+      });
       toast.success('Account created! Please sign in.');
       navigate(`/${vendorId}/login`);
     } catch {
@@ -50,11 +59,19 @@ const Register = () => {
           <p className="font-body text-sm text-muted-foreground mb-8">Join us and discover exclusive collections</p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Full Name</label>
-              <input value={name} onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors"
-                placeholder="Jane Doe" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">First Name</label>
+                <input value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors"
+                  placeholder="Jane" />
+              </div>
+              <div>
+                <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Name</label>
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors"
+                  placeholder="Doe" />
+              </div>
             </div>
             <div>
               <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Email</label>
@@ -63,10 +80,10 @@ const Register = () => {
                 placeholder="your@email.com" />
             </div>
             <div>
-              <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Phone Number</label>
+              <input type="tel" value={phoneNo} onChange={(e) => setPhoneNo(e.target.value)}
                 className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors"
-                placeholder="••••••••" />
+                placeholder="10-digit number" />
             </div>
             <button type="submit" disabled={isLoading}
               className="w-full py-3.5 bg-primary text-primary-foreground font-body text-sm font-medium uppercase tracking-widest hover:bg-charcoal-light transition-colors disabled:opacity-50">

@@ -56,7 +56,7 @@ const ProductDetail = () => {
   const images = product?.images || (product?.image ? [product.image] : []);
 
   const handleBuyNow = async () => {
-    const userId = user?.id || useAuthStore.getState().guestId;
+    const userId = user?.user_id || useAuthStore.getState().guestId;
     if (!userId) {
       toast.error('Please login to continue');
       return;
@@ -72,12 +72,12 @@ const ProductDetail = () => {
   };
 
   const handleAddToWishlist = async () => {
-    if (!isAuthenticated || !user?.id) {
+    if (!isAuthenticated || !user?.user_id) {
       toast.error('Please login to save to wishlist');
       return;
     }
     try {
-      await wishlistApi.add(user.id, { product_id: product_id! });
+      await wishlistApi.add(user.user_id, { product_id: product_id! });
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
       toast.success('Added to wishlist');
     } catch {
@@ -87,14 +87,14 @@ const ProductDetail = () => {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated || !user?.id) {
+    if (!isAuthenticated || !user?.user_id) {
       toast.error('Please login to leave a review');
       return;
     }
     if (!reviewText.trim()) return;
     setIsSubmittingReview(true);
     try {
-      await reviewApi.addReview({ product_id: product_id, user_id: user.id, rating: reviewRating, comment: reviewText });
+      await reviewApi.addReview({ product_id: product_id, user_id: user.user_id, rating: reviewRating, comment: reviewText });
       toast.success('Review submitted successfully');
       setReviewText('');
       setReviewRating(5);

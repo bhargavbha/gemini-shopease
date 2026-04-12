@@ -19,8 +19,8 @@ const Account = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
-  const [editName, setEditName] = useState('');
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
 
@@ -30,12 +30,13 @@ const Account = () => {
 
   useEffect(() => {
     if (user) {
-      setEditName(user.name || '');
-      setEditPhone((user.phone as string) || '');
+      setEditFirstName(user.first_name || '');
+      setEditLastName(user.last_name || '');
+      setEditPhone(user.phone_no || '');
     }
   }, [user]);
 
-  const userId = user?.id || localStorage.getItem('user_id') || '';
+  const userId = user?.user_id || localStorage.getItem('user_id') || '';
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['orders', userId],
@@ -60,7 +61,11 @@ const Account = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      await authApi.updateProfile({ name: editName, phone: editPhone });
+      await authApi.updateProfile({ 
+        first_name: editFirstName, 
+        last_name: editLastName, 
+        phone_no: editPhone 
+      });
       fetchProfile();
       toast.success('Profile updated');
     } catch {
@@ -123,10 +128,17 @@ const Account = () => {
             {activeTab === 'profile' && (
               <div className="max-w-lg space-y-6">
                 <h2 className="font-heading text-xl font-semibold">Personal Information</h2>
-                <div>
-                  <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Full Name</label>
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)}
-                    className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">First Name</label>
+                    <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)}
+                      className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors" />
+                  </div>
+                  <div>
+                    <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Name</label>
+                    <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)}
+                      className="w-full px-4 py-3 bg-transparent border border-border rounded-sm text-sm font-body outline-none focus:border-gold transition-colors" />
+                  </div>
                 </div>
                 <div>
                   <label className="font-body text-xs font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Email</label>

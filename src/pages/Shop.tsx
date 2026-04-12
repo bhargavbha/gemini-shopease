@@ -54,7 +54,7 @@ const ShopPage = () => {
 
   const { data, isLoading } = useQuery({ queryKey: getQueryKey(), queryFn: getQueryFn() });
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => categoryApi.getAll().then(r => r.data) });
-  
+
   const { data: categoryBanner } = useQuery({
     queryKey: ['banner', category_id],
     queryFn: () => bannerApi.getByCategory(category_id!).then(r => r.data),
@@ -64,7 +64,7 @@ const ShopPage = () => {
   const bannerImages = Array.isArray(categoryBanner) ? categoryBanner : categoryBanner?.banners || [];
   const activeBanner = bannerImages[0];
 
-  const products = Array.isArray(data) ? data : data?.products || [];
+  const products = data?.data || [];
   const cats = Array.isArray(categories) ? categories : categories?.categories || [];
 
   const getTitle = () => {
@@ -79,7 +79,7 @@ const ShopPage = () => {
   };
 
   const handleBuyNow = async (productId: string) => {
-    const userId = user?.id || useAuthStore.getState().guestId;
+    const userId = user?.user_id || useAuthStore.getState().guestId;
     if (!userId) {
       toast.error('Please login to continue');
       return;
@@ -94,11 +94,11 @@ const ShopPage = () => {
   };
 
   const handleToggleWishlist = async (productId: string) => {
-    if (!isAuthenticated || !user?.id) return;
+    if (!isAuthenticated || !user?.user_id) return;
     try {
-      await wishlistApi.add(user.id, { product_id: productId });
+      await wishlistApi.add(user.user_id, { product_id: productId });
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-    } catch {}
+    } catch { }
   };
 
   return (

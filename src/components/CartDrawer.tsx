@@ -15,7 +15,7 @@ const CartDrawer = () => {
   const queryClient = useQueryClient();
 
   const handleRemove = async (productId: string) => {
-    const userId = user?.id || useAuthStore.getState().guestId;
+    const userId = user?.user_id || useAuthStore.getState().guestId;
     if (!userId) return;
     try {
       await cartApi.remove({ user_id: userId, product_id: productId });

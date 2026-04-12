@@ -2,10 +2,11 @@ import { create } from 'zustand';
 import { authApi } from '@/services/api';
 
 interface User {
-  id: string;
-  name: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  phone?: string;
+  phone_no: string;
   [key: string]: unknown;
 }
 
@@ -15,8 +16,8 @@ interface AuthState {
   guestId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: { name: string; email: string; password: string }) => Promise<void>;
+  login: (idToken: string) => Promise<void>;
+  register: (data: { first_name: string; last_name: string; email: string; phone_no: string }) => Promise<void>;
   logout: () => void;
   fetchProfile: () => Promise<void>;
   initialize: () => void;
@@ -48,13 +49,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (email, password) => {
+  login: async (idToken) => {
     set({ isLoading: true });
     try {
-      const res = await authApi.login(email, password);
+      const res = await authApi.login(idToken);
       const { token, user } = res.data;
       localStorage.setItem('jwt_token', token);
-      if (user?.id) localStorage.setItem('user_id', user.id);
+      if (user?.user_id) localStorage.setItem('user_id', String(user.user_id));
       set({ token, user, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -84,7 +85,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const res = await authApi.getProfile();
       const user = res.data;
-      if (user?.id) localStorage.setItem('user_id', user.id);
+      if (user?.user_id) localStorage.setItem('user_id', String(user.user_id));
       set({ user });
     } catch {
       // silent fail

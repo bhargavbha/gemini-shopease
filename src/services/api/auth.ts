@@ -1,9 +1,9 @@
 import apiClient from '@/lib/api-client';
 
 export const authApi = {
-  login: (email: string, password: string) =>
-    apiClient.post('/auth/user-login', { email, password }),
-  register: (data: { name: string; email: string; password: string }) =>
+  login: (idToken: string) =>
+    apiClient.post('/auth/user-login', { idToken }),
+  register: (data: { first_name: string; last_name: string; email: string; phone_no: string }) =>
     apiClient.post('/auth/register/user', data),
   getProfile: () => apiClient.get('/auth/profile'),
   updateProfile: (data: Record<string, unknown>) => apiClient.put('/auth/update', data),

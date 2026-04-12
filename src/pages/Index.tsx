@@ -181,7 +181,7 @@ const Testimonials = () => {
     if (!reviewText.trim()) return;
     setIsSubmitting(true);
     try {
-      await websiteReviewApi.add({ user_id: user.id || user._id, rating, comment: reviewText });
+      await websiteReviewApi.add({ user_id: user.user_id, rating, comment: reviewText });
       toast.success('Thank you for your feedback!');
       setReviewText('');
       setRating(5);

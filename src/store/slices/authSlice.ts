@@ -15,7 +15,7 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials: any,
     const response = await ApiService.post('/auth/user-login', credentials);
     const { token, user } = response.data;
     localStorage.setItem('jwt_token', token);
-    if (user?.id) localStorage.setItem('user_id', user.id);
+    if (user?.user_id) localStorage.setItem('user_id', String(user.user_id));
     return { token, user };
   } catch (error: any) {
     return rejectWithValue(error.response?.data || 'Login failed');

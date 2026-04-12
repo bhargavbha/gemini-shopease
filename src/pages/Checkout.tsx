@@ -17,7 +17,7 @@ const Checkout = () => {
   const { items, totalPrice, cartId } = useCartStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const userId = user?.id || localStorage.getItem('user_id') || guestId || '';
+  const userId = user?.user_id || localStorage.getItem('user_id') || guestId || '';
 
   const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
   const [selectedBilling, setSelectedBilling] = useState<string | null>(null);
